@@ -68,7 +68,7 @@
 		}
 	}
 
-	mlPushMenu.prototype = {
+    mlPushMenu.prototype = {
 		defaults : {
 			// overlap: there will be a gap between open levels
 			// cover: the open levels will be on top of any previous open level
@@ -81,6 +81,7 @@
 		_init : function() {
 			// if menu is open or not
 			this.open = false;
+			this.mobileMenu = document.getElementById( 'mobile-menu');
 			// level depth
 			this.level = 0;
 			// the moving wrapper
@@ -100,6 +101,8 @@
 			classie.add( this.el, 'mp-' + this.options.type );
 			// initialize / bind the necessary events
 			this._initEvents();
+			// 
+			this.closeMenu = Array.prototype.slice.call( this.el.querySelectorAll( 'span.closeMenu') );
 		},
 		_initEvents : function() {
 			var self = this;
@@ -109,6 +112,13 @@
 				self._resetMenu();
 				el.removeEventListener( self.eventtype, bodyClickFn );
 			};
+
+            var closeMenuClickFn = function( el ) {
+                self._resetMenu();
+				self.closeMenu.forEach( function(el, i) {
+					el.removeEventListener( self.eventtype, closeMenuClickFn);
+				});
+            }			
 
 			// open (or close) the menu
 			this.trigger.addEventListener( this.eventtype, function( ev ) {
@@ -124,6 +134,10 @@
 						if( self.open && !hasParent( ev.target, self.el.id ) ) {
 							bodyClickFn( this );
 						}
+					} );
+					// close menu option
+					self.closeMenu.forEach( function( el, i ) {
+						el.addEventListener( self.eventtype, closeMenuClickFn );
 					} );
 				}
 			} );
@@ -196,6 +210,7 @@
 			if( this.level === 1 ) {
 				classie.add( this.wrapper, 'mp-pushed' );
 				this.open = true;
+				classie.add( this.mobileMenu, 'open-menu');
 			}
 			// add class mp-level-open to the opening level element
 			classie.add( subLevel || this.levels[0], 'mp-level-open' );
@@ -208,6 +223,7 @@
 			classie.remove( this.wrapper, 'mp-pushed' );
 			this._toggleLevels();
 			this.open = false;
+			classie.remove( this.mobileMenu, 'open-menu');
 		},
 		// close sub menus
 		_closeMenu : function() {
